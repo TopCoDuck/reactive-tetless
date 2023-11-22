@@ -1,5 +1,6 @@
 package com.tetless.backend.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -8,7 +9,9 @@ import com.tetless.backend.service.disk.StockDiskService;
 import com.tetless.backend.service.experimental.StockNotingService;
 
 import lombok.RequiredArgsConstructor;
-
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+@Slf4j
 @RequiredArgsConstructor
 @RestController
 public class StockController {
@@ -18,17 +21,16 @@ public class StockController {
 	private final StockNotingService stockNotingService;
 
 	@GetMapping("/inmemory/stock/sell-count")
-	public Boolean stockSellCountByInMemory() {
+	public Flux<Boolean> stockSellCountByInMemory() {
 		return stockRepository.stockSellCount();
 	}
 
 	@GetMapping("/disk/stock/sell-count")
-	public Boolean stockSellCountByDisk() {
-		return stockDiskService.stockSellTransactionWithLock();
+	public Mono<Boolean> stockSellCountByDisk() throws InterruptedException {
+		return stockDiskService.stockSellCountWithStockBuy();
 	}
-
 	@GetMapping("/experimental/stock/sell-count")
-	public Boolean stockSellCountByNoting() {
+	public Mono<Boolean> stockSellCountByNoting() {
 		return stockNotingService.stockSellCount();
 	}
 }

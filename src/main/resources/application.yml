@@ -1,15 +1,9 @@
 spring:
-  datasource:
-    hikari:
-      driver-class-name: com.mysql.cj.jdbc.Driver
-      jdbc-url: jdbc:mysql://localhost:3306/escrow?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-      username: user
-      password: qwer1234
-  jpa:
-    open-in-view: false
-    properties:
-      alect: org.hibernate.dialect.MySQL8InnoDBDialect
-      hibernate:
-        show_sql: false
-        format_sql: false
-        use_sql_comments: false
+  data:
+    redis:
+      repositories:
+        enabled: false
+  r2dbc:
+    url: r2dbc:mysql://localhost:3306/escrow?characterEncoding=UTF-8&serverTimezone=UTC
+    username: user
+    password: qwer1234

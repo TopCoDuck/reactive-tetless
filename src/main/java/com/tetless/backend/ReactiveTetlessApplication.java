@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class TetlessApplication {
+public class ReactiveTetlessApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(TetlessApplication.class, args);
+		SpringApplication.run(ReactiveTetlessApplication.class, args);
 	}
 
 }

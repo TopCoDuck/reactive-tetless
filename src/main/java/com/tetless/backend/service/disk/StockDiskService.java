@@ -1,55 +1,58 @@
 package com.tetless.backend.service.disk;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.tetless.backend.model.disk.BuyStatus;
 import com.tetless.backend.repository.disk.StockBuyDiskRepository;
 import com.tetless.backend.repository.disk.StockSellDiskRepository;
 import com.tetless.backend.repository.disk.entity.StockBuyEntity;
-import com.tetless.backend.repository.disk.entity.StockSellEntity;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
+import org.springframework.stereotype.Service;
+
+import reactor.core.publisher.Mono;
 
 @Slf4j
-@Service
 @RequiredArgsConstructor
+@Service
 public class StockDiskService {
-
-	private final StockSellDiskRepository stockDiskRepository;
+	private final StockSellDiskRepository stockSellDiskRepository;
 	private final StockBuyDiskRepository stockBuyDiskRepository;
 
-	@Transactional
-	public boolean stockSellTransactionWithLock() {
-		StockSellEntity stockSell = stockDiskRepository.findByStockSellNo(1);
-		stockSell.changeSoldQty(1);
-		stockDiskRepository.save(stockSell);
-		return true;
+	//@Transactional
+	public Mono<Boolean> stockSellCount() {
+		//StockSellEntity stockSell = stockDiskRepository.findByStockSellNo(1);
+		//stockSell.changeSoldQty(1);
+		//stockDiskRepository.save(stockSell);
+		return Mono.just(null);
 	}
 
-	public boolean stockSellCountWithStockBuy() {
-		StockSellEntity stockSell = stockDiskRepository.findById(1).get();
-		int preSumBuyQutity = stockBuyDiskRepository.sumBuyQutity(1);
+    public Mono<Boolean> stockSellCountWithStockBuy() throws InterruptedException {
 
-		if (preSumBuyQutity < stockSell.getSellQty()) {
-			StockBuyEntity stockBuy = StockBuyEntity.create(1, 1);
-			stockBuyDiskRepository.save(stockBuy);
-			// NOTE: 실질적으로는 중간 작업으로 인한 텀이 있음
-			int postSumBuyQutity = stockBuyDiskRepository.sumBuyQutity(1);
-			if (postSumBuyQutity > stockSell.getSellQty()) {
-				stockBuy.changeStatus(BuyStatus.FAIL);
-				log.info("overflow : {}", stockBuy.getStockBuyNo());
-			} else {
-				stockBuy.changeStatus(BuyStatus.DONE);
-			}
+        return Mono.zip(stockSellDiskRepository.findById(1),
+                        stockBuyDiskRepository.sumBuyQuantity(1))
+                .flatMap(item -> {
+                    val stockSell = item.getT1();
+                    val preSumBuyQuantity = item.getT2();
 
-			stockBuyDiskRepository.save(stockBuy);
-			// NOTE: stockSell은 메시지 규에 담아서 업데이트 후 처리
-		} else {
-			return false;
-		}
+                    if (preSumBuyQuantity < stockSell.getSellQty()) {
+                        val stockBuy = StockBuyEntity.create(1, 1);
 
-		return true;
-	}
+                        return Mono.just(stockBuy)
+                                .flatMap(stockBuyDiskRepository::save)
+                                .then(stockBuyDiskRepository.sumBuyQuantity(1))
+                                .map(postSumBuyQutity -> {
+                                    if (postSumBuyQutity > stockSell.getSellQty()) {
+                                        stockBuy.changeStatus(BuyStatus.FAIL);
+                                    } else {
+                                        stockBuy.changeStatus(BuyStatus.DONE);
+                                    }
+                                    return stockBuy;
+                                })
+                                .flatMap(stockBuyDiskRepository::save)
+                                .thenReturn(true);
+                    } else {
+                        return Mono.just(false);
+                    }
+                });
+    }
 }

@@ -1,31 +1,28 @@
 package com.tetless.backend.repository.inmemory;
 
 import java.util.List;
+
 import org.springframework.context.annotation.Bean;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Repository;
 
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Flux;
 
 @Repository
 @RequiredArgsConstructor
 public class StockMemoryRepository {
 
-	private final RedisTemplate<String, String> redisTemplate;
+	private final ReactiveRedisTemplate<String, String> redisTemplate;
 	
 	private static final String STOCK_SELL_KEY = "stock:sell";
 	
 	
-	public boolean stockSellCount() {
-		this.stockSellCountLua();
-		return true;
+	public Flux<Boolean> stockSellCount() {
+		return redisTemplate.execute(script(), List.of(STOCK_SELL_KEY), List.of());
 	}
 
-	public boolean stockSellCountLua() {
-		return redisTemplate.execute(script(), List.of(STOCK_SELL_KEY), "");
-	}
-	
 	@Bean
 	RedisScript<Boolean> script() {
 		  return RedisScript.of(luaScript, Boolean.class);

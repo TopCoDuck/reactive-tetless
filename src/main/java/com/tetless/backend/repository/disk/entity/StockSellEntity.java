@@ -1,13 +1,11 @@
 package com.tetless.backend.repository.disk.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import lombok.Getter;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Table;
 
+@Table("stock_sell")
 @Getter
-@Entity
-@Table(name = "stock_sell")
 public class StockSellEntity {
 	@Id
 	private int stockSellNo;
