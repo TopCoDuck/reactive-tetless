@@ -8,23 +8,22 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.stereotype.Service;
-
 import reactor.core.publisher.Mono;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class StockDiskService {
-	private final StockSellDiskRepository stockSellDiskRepository;
-	private final StockBuyDiskRepository stockBuyDiskRepository;
+    private final StockSellDiskRepository stockSellDiskRepository;
+    private final StockBuyDiskRepository stockBuyDiskRepository;
 
-	//@Transactional
-	public Mono<Boolean> stockSellCount() {
-		//StockSellEntity stockSell = stockDiskRepository.findByStockSellNo(1);
-		//stockSell.changeSoldQty(1);
-		//stockDiskRepository.save(stockSell);
-		return Mono.just(null);
-	}
+    //@Transactional
+    public Mono<Boolean> stockSellCount() {
+        //StockSellEntity stockSell = stockDiskRepository.findByStockSellNo(1);
+        //stockSell.changeSoldQty(1);
+        //stockDiskRepository.save(stockSell);
+        return Mono.just(null);
+    }
 
     public Mono<Boolean> stockSellCountWithStockBuy() throws InterruptedException {
 

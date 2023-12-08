@@ -15,27 +15,10 @@ import reactor.core.publisher.Flux;
 public class StockMemoryRepository {
 
 	private final ReactiveRedisTemplate<String, String> redisTemplate;
-	
+	private final RedisScript<Boolean> stockSellScript;
 	private static final String STOCK_SELL_KEY = "stock:sell";
-	
-	
-	public Flux<Boolean> stockSellCount() {
-		return redisTemplate.execute(script(), List.of(STOCK_SELL_KEY), List.of());
-	}
 
-	@Bean
-	RedisScript<Boolean> script() {
-		  return RedisScript.of(luaScript, Boolean.class);
+	public Flux<Boolean> stockSellCount() {
+		return redisTemplate.execute(stockSellScript, List.of(STOCK_SELL_KEY), List.of());
 	}
-	
-	String luaScript = "local limit = redis.call('HGET', KEYS[1], 'limit')\r\n"
-			+"local sold = redis.call('HGET', KEYS[1], 'sold')\r\n"
-			+ "if limit == false\r\n"
-			+ "  then return true\r\n"
-			+ "end\r\n"
-			+ "if tonumber(sold) < tonumber(limit) \r\n"
-			+ "  then redis.call('HINCRBY', KEYS[1], 'sold', 1)\r\n"
-			+ "  return true\r\n"
-			+ "end\r\n"
-			+ "return false";
 }
